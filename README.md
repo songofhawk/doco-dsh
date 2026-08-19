@@ -23,11 +23,29 @@ Doco 知识库的 **DeepSeek Harness（dsh）原生插件**。用 6 个工具把
 - `doco-agent-cli@^0.1.3`（npm 运行时依赖）；
 - `@deepseek-ai/dsh-tools` / `@deepseek-ai/cordis`（**peer dep**，由宿主 dsh 提供，本插件不捆绑）。
 
-在 dsh 中作为插件安装本包后，`apply` 会：
+装包并挂载两步：
+
+```bash
+pnpm add doco-dsh   # 或 npm i doco-dsh，装到 dsh 项目里供 composition 解析
+```
+
+再在 dsh 的 Composition YAML（如 `agent.cordis.yml`）里追加一条——`name` 既可用 npm 包名，也可用本地相对路径：
+
+```yaml
+# 挂到你的 composition（追加一条）
+- id: doco
+  name: 'doco-dsh'
+```
+
+（最简形式也可只写 `- name: 'doco-dsh'`。挂载语法细节见 dsh 教程《07 · Into the Harness》。）
+
+挂载完成后，`apply` 会：
 1. 解析配置（见下）；
 2. 注册 6 个工具（命名带 `doco_` 前缀，可配 `DOCO_DSH_TOOL_PREFIX` 覆盖）；
 3. 注入系统提示词分段（仅规则，不注入内容/Token）；
 4. 注册 `/doco` 命令。
+
+> 配置走环境变量与 `doco-agent-cli` 的 `loadConfig()`（见下方「配置」），不通过 YAML `config:` 块。
 
 若 `@deepseek-ai/dsh-tools` 缺失或版本不兼容，插件会在加载期抛稳定错误码 `doco_dsh_incompatible`（不静默降级）。
 
