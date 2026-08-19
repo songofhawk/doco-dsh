@@ -1,6 +1,6 @@
 {
   "name": "doco-dsh",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Doco knowledge-base native plugin for DeepSeek Harness (dsh) — search, read, outline and save-draft your Doco KB with block-level addressing.",
   "keywords": ["doco", "deepseek-harness", "dsh", "plugin", "knowledge-base", "knowledge-management", "ai-agents"],
   "type": "module",

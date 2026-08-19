@@ -68,4 +68,3 @@ export function apply(ctx, options = {}) {
 }
 
 export { resolveConfig, registerTools, applyPolicy, buildCommands, promptText, createState };
-export default apply;

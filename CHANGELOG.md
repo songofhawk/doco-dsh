@@ -3,6 +3,11 @@
 All notable changes to the doco-dsh plugin are documented here.
 版本号遵循 [SemVer](https://semver.org/)。
 
+## [0.1.3] - 2026-08-19
+
+### Fixed
+- 移除入口 `export default apply;`。dsh 的插件加载器优先读取 `default` 导出并从中取 `.name`/`.inject`（均为 `undefined`），导致 `inject` 变空，实际启动时抛 `cannot get property "tools" without inject`。现改为纯命名导出（`export const name` / `export const inject` / `export function apply`），与官方 `dsh-approval-mode` 形状一致。
+
 ## [0.1.2] - 2026-08-19
 
 ### Added
