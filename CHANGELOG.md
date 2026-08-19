@@ -3,6 +3,11 @@
 All notable changes to the doco-dsh plugin are documented here.
 版本号遵循 [SemVer](https://semver.org/)。
 
+## [0.1.1] - 2026-08-19
+
+### Changed
+- README「安装」补充 dsh Composition 挂载步骤与可复制的安装片段（`pnpm add doco-dsh` + 组合 YAML 里 `name: 'doco-dsh'`），并注明配置走环境变量而非 YAML `config:` 块。
+
 ## [0.1.0] - 2026-08-18
 
 ### Added
