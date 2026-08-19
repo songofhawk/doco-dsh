@@ -23,7 +23,13 @@ Doco 知识库的 **DeepSeek Harness（dsh）原生插件**。用 6 个工具把
 - `doco-agent-cli@^0.1.3`（npm 运行时依赖）；
 - `@deepseek-ai/dsh-tools` / `@deepseek-ai/cordis`（**peer dep**，由宿主 dsh 提供，本插件不捆绑）。
 
-装包并挂载两步：
+装包并自动挂载（推荐）——本包声明了 `dsh.bundle.patch`，`dsh plugin add` 装完即自动挂进 profile 层栈：
+
+```bash
+dsh plugin --profile <name> add doco-dsh
+```
+
+手动挂载（备选）两步：
 
 ```bash
 pnpm add doco-dsh   # 或 npm i doco-dsh，装到 dsh 项目里供 composition 解析

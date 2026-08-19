@@ -19,6 +19,9 @@ test('package.json：名称/模块/导出/工作区依赖', () => {
   assert.equal(pkg.peerDependencies?.['@deepseek-ai/dsh-tools'], '>=0.1.0-rc.7');
   assert.equal(pkg.peerDependenciesMeta?.['@deepseek-ai/dsh-tools']?.optional, true);
   assert.equal(pkg.peerDependenciesMeta?.['@deepseek-ai/cordis']?.optional, true);
+  // dsh bundle 声明：dsh plugin add 装完即自动挂入 profile 层栈
+  assert.equal(pkg.dsh?.bundle?.patch, './cordis.patch.yml');
+  assert.ok(Array.isArray(pkg.files) && pkg.files.includes('cordis.patch.yml'));
 });
 
 test('入口：name / inject / version / apply 形状正确且可被 import', async () => {

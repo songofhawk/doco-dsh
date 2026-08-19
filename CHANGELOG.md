@@ -3,6 +3,11 @@
 All notable changes to the doco-dsh plugin are documented here.
 版本号遵循 [SemVer](https://semver.org/)。
 
+## [0.1.2] - 2026-08-19
+
+### Added
+- `dsh.bundle.patch` 声明 + `cordis.patch.yml`，让 `dsh plugin --profile <name> add doco-dsh` 装完即自动挂入 profile 层栈，无需手写 composition。
+
 ## [0.1.1] - 2026-08-19
 
 ### Changed

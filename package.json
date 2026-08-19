@@ -1,6 +1,6 @@
 {
   "name": "doco-dsh",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Doco knowledge-base native plugin for DeepSeek Harness (dsh) — search, read, outline and save-draft your Doco KB with block-level addressing.",
   "keywords": ["doco", "deepseek-harness", "dsh", "plugin", "knowledge-base", "knowledge-management", "ai-agents"],
   "type": "module",
@@ -17,10 +17,16 @@
   "exports": {
     ".": "./src/index.js"
   },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
   "files": [
     "src",
     "README.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "cordis.patch.yml"
   ],
   "engines": {
     "node": ">=18.0.0"
