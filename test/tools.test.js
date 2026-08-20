@@ -34,7 +34,7 @@ test('doco_status：未配置 → connected:false + next_step', async () => {
   assert.equal(v.connected, false);
   assert.equal(v.configured, false);
   assert.ok(v.next_step.includes('/doco connect'));
-  const rendered = tool.render(v);
+  const rendered = tool.render({}, v);
   assert.equal(rendered[0].type, 'text');
 });
 

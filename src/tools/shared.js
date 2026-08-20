@@ -4,7 +4,8 @@
  * 关键约定：
  *   - 所有工具返回「开放对象」的 canonical 值（kind 字段标识结果类型）；
  *   - output.schema 统一为 OPEN_OBJECT，structuredContent 即 execute 返回值；
- *   - render(value) 产出面向模型的紧凑 `ContentBlock[]`（[{type:'text', text}]）。
+ *   - render(_args, value) 产出面向模型的紧凑 `ContentBlock[]`（[{type:'text', text}]）。
+ *     注意 dsh-tools 的 defineTool 以 (args, value) 两个实参调用 render，首参是工具入参，勿写成单参。
  *   - API 错误「返回而非抛出」：execute 返回 `{kind:'doco_error', ...}`，render 据此排版。
  */
 import { LIMITS } from '../limits.js';

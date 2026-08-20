@@ -63,6 +63,45 @@ test('真实 defineTool 的 execute 按 schema 校验：合法参数通过、缺
   );
 });
 
+// 回归（0.1.4）：dsh 宿主以 (args, value) 两个实参调用 output.render，首参是工具入参。
+// 0.1.3 及之前 render 写成单参，实际拿到 args，导致 doco_search 读 value.results 崩
+// （Cannot read properties of undefined），status/list 渲染成空壳。这里按真实调用方式断言。
+test('回归：output.render 按 dsh 真实约定 (args, value) 调用，渲染依赖 value 而非 args', async () => {
+  const { ctx } = makeFakeContext();
+  const state = makeFakeState({
+    client: {
+      searchV2: async (query) => ({
+        data: {
+          query: query.q,
+          mode: 'topk',
+          results: [{
+            document_id: 'doc_1', document_uri: 'doco://doc/doc_1', title: '架构决策',
+            path_text: 'kb/技术', block_id: 'blk_1', matched_in: 'body', score: 0.9,
+          }],
+          page: {}, projection: { complete: true, freshness: 'current' },
+        },
+      }),
+    },
+  });
+  registerTools(ctx.tools, { state, toolPrefix: 'doco_' }, defineTool);
+  const search = ctx.tools.get('doco_search');
+
+  const args = { q: '预算与分账' };
+  const value = await search.execute(args);
+  assert.equal(value.kind, 'doco_search');
+
+  // 成功路径：render 输出必须反映执行结果（命中标题），而不是把 args 当 value 读崩。
+  const blocks = search.output.render(args, value);
+  assert.equal(blocks[0].type, 'text');
+  assert.ok(blocks[0].text.includes('架构决策'));
+  assert.ok(blocks[0].text.includes('预算与分账'));
+
+  // 错误路径：错误值也要按 value 排版出稳定错误码。
+  const errValue = { kind: 'doco_error', code: 'doco_network', message: '无法连接到 Doco API', next_step: '重试' };
+  const errBlocks = search.output.render(args, errValue);
+  assert.ok(errBlocks[0].text.includes('doco_network'));
+});
+
 test('validateArgs：必填参数缺省返回违规，合法样本返回空数组', () => {
   const state = makeFakeState();
   // 直接拿工厂的原始 DSL 参数（未编译），validateArgs 只吃 DSL。

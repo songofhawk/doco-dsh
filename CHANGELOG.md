@@ -3,6 +3,11 @@
 All notable changes to the doco-dsh plugin are documented here.
 版本号遵循 [SemVer](https://semver.org/)。
 
+## [0.1.4] - 2026-08-20
+
+### Fixed
+- **render 参数顺序**（严重）：dsh-tools 的 `defineTool` 以 `(args, value)` 两个实参调用 `output.render`（首参为工具入参），此前 6 个工具均写成单参 `render(value)`，导致 `value` 实际拿到 `args`。表现为 `doco_search` 崩溃 `output.render failed: Cannot read properties of undefined (reading 'length')`，`doco_status`/`doco_list_knowledge_bases` 渲染成空壳。现统一改为 `render(_args, value)`，并新增真实 `defineTool` 下按 `(args, value)` 调用的回归测试。
+
 ## [0.1.3] - 2026-08-19
 
 ### Fixed

@@ -131,7 +131,7 @@ export function createDocoRead({ state, name }) {
         return catchAsError(err);
       }
     },
-    render(value) {
+    render(_args, value) {
       if (value.kind === 'doco_error') {
         return textBlock(`Doco 错误（${value.code}）：${value.message}\n下一步：${value.next_step || ''}`);
       }

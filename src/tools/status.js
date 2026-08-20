@@ -67,7 +67,7 @@ export function createDocoStatus({ state, name }) {
         capabilities: capabilities(state, scopes),
       };
     },
-    render(value) {
+    render(_args, value) {
       if (value.kind !== 'doco_status') return textBlock(JSON.stringify(value));
       if (!value.connected) {
         return textBlock(
