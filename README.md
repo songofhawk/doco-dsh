@@ -93,6 +93,21 @@ Token 只走 POST 请求体与浏览器；**绝不进入工具结果、日志、
 
 `doco_save_draft` 只 **创建新草稿**：不删除、不移动、不整篇覆盖；用唯一 `Idempotency-Key`，冲突即返回 `doco_version_conflict`，从不强覆盖。
 
+## `doco` 服务（供上层插件消费）
+
+自 **0.2.0** 起，`apply` 在装配早期通过 `ctx.provide('doco', createDocoService(state, { toolPrefix }))` 暴露一个 **`doco` 服务**，把客户端、身份、scope、错误契约与配置以统一服务面开放给同进程的其他插件：
+
+- `getConfig()` / `getClient()` — 实时配置与 `DocoClient`（reconfigure 后整体替换，活引用）；
+- `ensureIdentity()` / `hasToken()` / `hasScope(scopes, scope)` / `scopes` — 身份与权限面；
+- `errorValue` / `toErrorValue` / `mapApiError` / `DocoPluginError` — 统一错误契约；
+- `toolPrefix` / `pluginName` / `version` — 运行时元信息。
+
+消费方用 Cordis 依赖注入声明 `inject: ['doco']`，插件会等待该服务就绪后才启动。当前消费者：
+
+- **[doco-memory-dsh](https://github.com/songofhawk/doco-memory-dsh)**（peer `doco-dsh >= 0.2.0`）：把 Doco 知识库变成 Agent 的集中式记忆库（recall / remember / context / init，布局规范 [Doco Memory Layout spec v1](https://github.com/songofhawk/doco-memory-dsh/blob/main/design/doco-memory-layout-spec-v1.md)）。
+
+不消费 `doco` 服务也完全不影响 doco-dsh 自身 6 个工具：服务是纯增量面。
+
 ## 与 Doco MCP 的关系
 
 `doco-agent-cli` 自带一套 29 工具的 MCP server。本插件复用同一 `DocoClient`，并在读/搜索工具上采用**同名前缀**：若二者被同时加载，`registerTools` 检测到重名会**跳过而非覆盖**，避免同一个知识库以两套名字重复注册、重复消耗上下文。**推荐二选一**（原生插件更省一跳 RPC 且能用上 dsh 原生写入审批；MCP 更通用）。详见 [docs/adr-001-native-vs-mcp.md](docs/adr-001-native-vs-mcp.md)。

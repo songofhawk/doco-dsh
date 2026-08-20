@@ -12,6 +12,7 @@ import { registerTools } from './tools/index.js';
 import { applyPolicy } from './policy.js';
 import { buildCommands } from './commands.js';
 import { promptText, PROMPT_SECTION_NAME } from './prompt.js';
+import { createDocoService } from './service.js';
 import { PLUGIN_NAME, VERSION } from './version.js';
 
 export const name = 'doco-dsh';
@@ -51,6 +52,10 @@ export function apply(ctx, options = {}) {
   const log = (m) => { try { ctx.logger?.warn?.(m); } catch { /* 诊断日志失败不阻塞 */ } };
 
   ctx.effect(function* () {
+    // 0. doco 服务（下游插件如 doco-memory-dsh 注入依赖的契约面）
+    // provide 必须在 effect 内执行，disposer 随插件卸载一并清理。
+    yield ctx.provide('doco', createDocoService(state, { toolPrefix }));
+
     // 1. 工具（重复名跳过，不覆盖其他插件/MCP 的同名工具）
     const { disposers, skipped } = registerTools(ctx.tools, { state, toolPrefix }, defineTool, { log });
     for (const skip of skipped) log(`${PLUGIN_NAME}: 未注册 ${skip.name}（已存在同名工具，二选一：原生插件与 Doco MCP 不重复加载）`);
@@ -67,4 +72,4 @@ export function apply(ctx, options = {}) {
   }, `${PLUGIN_NAME} lifecycle`);
 }
 
-export { resolveConfig, registerTools, applyPolicy, buildCommands, promptText, createState };
+export { resolveConfig, registerTools, applyPolicy, buildCommands, promptText, createState, createDocoService };

@@ -3,6 +3,15 @@
 All notable changes to the doco-dsh plugin are documented here.
 版本号遵循 [SemVer](https://semver.org/)。
 
+## [0.2.0] - 2026-08-20
+
+### Added
+- **`doco` 服务**（正式 API）：`apply` 装配早期 `ctx.provide('doco', createDocoService(...))`，开放 `getConfig` / `getClient` / `ensureIdentity` / `hasToken` / `hasScope` / `scopes` / `errorValue` / `toErrorValue` / `mapApiError` / `DocoPluginError` / `toolPrefix`。供上层插件（如 doco-memory-dsh）以 `inject: ['doco']` 消费；服务面为纯增量，不影响 doco-dsh 自身工具。
+- 导出 `createDocoService`（`src/service.js`）。
+
+### 说明
+- 本版本是 doco-memory-dsh 的 peer 下限（`doco-dsh >= 0.2.0`）。
+
 ## [0.1.4] - 2026-08-20
 
 ### Fixed

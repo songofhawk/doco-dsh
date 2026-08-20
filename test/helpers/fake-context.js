@@ -39,6 +39,7 @@ export function makeFakeContext() {
     },
   };
 
+  const providedServices = new Map();
   const ctx = {
     logger: { warn() {}, info() {}, error() {}, debug() {} },
     tools,
@@ -57,6 +58,12 @@ export function makeFakeContext() {
         commands.push(def);
         return () => {};
       },
+    },
+    provide(name, value) {
+      providedServices.set(name, value);
+      return () => {
+        providedServices.delete(name);
+      };
     },
     effect(fn) {
       const it = fn();
@@ -77,6 +84,7 @@ export function makeFakeContext() {
     preExecute,
     promptSections,
     commands,
+    providedServices,
     loggerCalls: [],
   };
 }
