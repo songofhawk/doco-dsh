@@ -141,6 +141,19 @@ export function mapApiError(error) {
     };
   }
 
+  // 请求构造非法（如幂等键/头含非 ASCII）：DocoClient 以 status=400 code='invalid_request' 抛出。
+  // 这不是网络问题，也不是服务端错误——给出可操作的 next_step。
+  if (code === 'invalid_request') {
+    return {
+      code: 'doco_invalid_request',
+      message: rawMessage || '请求构造非法。',
+      next_step: '检查请求参数与派生头（如 Idempotency-Key）是否只含 ASCII 字符、类型是否正确；调用方应修复生成逻辑后重试。',
+      http_status: 400,
+      retry_after: null,
+      retryable: false,
+    };
+  }
+
   // 传输层失败：DocoClient 把 fetch 抛错 / 超时统一包装成 status=0 的 DocoApiError
   // （code='network_error'|'timeout'）；裸 TypeError 也可能直接冒泡（status==null）。
   if (
