@@ -11,7 +11,8 @@ import { createDocoSearch } from './search.js';
 import { createDocoOutline } from './outline.js';
 import { createDocoRead } from './read.js';
 import { createDocoSaveDraft } from './saveDraft.js';
-import { OPEN_OBJECT } from './shared.js';
+import { createDocoGetSpreadsheet, createDocoGetCells, createDocoUpdateCells } from './spreadsheet.js';
+import { OPEN_OBJECT, textBlock } from './shared.js';
 
 const DUPLICATE_RE = /is already registered/i;
 
@@ -38,6 +39,9 @@ export function registerTools(ctxTools, deps, buildTool, hooks = {}) {
     createDocoOutline,
     createDocoRead,
     createDocoSaveDraft,
+    createDocoGetSpreadsheet,
+    createDocoGetCells,
+    createDocoUpdateCells,
   ];
 
   const registered = [];
@@ -51,7 +55,7 @@ export function registerTools(ctxTools, deps, buildTool, hooks = {}) {
       name: def.name,
       description: def.description,
       parameters: def.parameters,
-      output: { schema: OPEN_OBJECT, render: def.render },
+      output: { schema: OPEN_OBJECT, render: def.render ?? ((_args, value) => textBlock(JSON.stringify(value))) },
       execute: def.execute,
     });
     try {

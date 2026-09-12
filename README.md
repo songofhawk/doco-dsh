@@ -1,6 +1,6 @@
 # doco-dsh
 
-Doco 知识库的 **DeepSeek Harness（dsh）原生插件**。用 6 个工具把 Agent 接到你的 Doco 知识库上：块级寻址、按 token 预算精读、乐观并发写入草稿、来源引用，全部复用 [`doco-agent-cli`](https://www.npmjs.com/package/doco-agent-cli) 的 `DocoClient`（HTTP / ETag / Token 逻辑不复制）。
+Doco 知识库的 **DeepSeek Harness（dsh）原生插件**。用 9 个工具把 Agent 接到你的 Doco 知识库上：块级寻址、按 token 预算精读、乐观并发写入草稿、来源引用，全部复用 [`doco-agent-cli`](https://www.npmjs.com/package/doco-agent-cli) 的 `DocoClient`（HTTP / ETag / Token 逻辑不复制）。
 
 默认**只读**；写入走 dsh 原生审批 + scope 门禁，绝不静默提交。
 
@@ -13,6 +13,9 @@ Doco 知识库的 **DeepSeek Harness（dsh）原生插件**。用 6 个工具把
 | `doco_search` | 读 | Search v2 全文搜索，带完整性证明（`projection.complete` / `freshness`） |
 | `doco_outline` | 读 | 文档结构大纲（稳定 `block_id` + heading path），先规划再精读 |
 | `doco_read` | 读 | 按 token 预算局部读取正文（`around` / `cursor` 续读） |
+| `doco_get_spreadsheet` | 读 | 工作表结构、激活页、尺寸、格式与顶层 version |
+| `doco_get_cells` | 读 | `document_id` + `sheet_id` + `range`，返回原始字符串 |
+| `doco_update_cells` | 写 | `document_id` + `sheet_id` + `cells` + `if_match`，原子批量提交 |
 | `doco_save_draft` | 写 | 把 Agent 产出存成**新草稿**（`preview` → 确认 → `commit`） |
 
 回答里的事实命中有来源引用（`document_uri` / `web_url`）；`doco_search` 返回 `complete=false` 或 `freshness=stale` 时，插件会显式标注「结果不完整」，禁止 Agent 据此断言「知识库里没有」。
@@ -47,7 +50,7 @@ pnpm add doco-dsh   # 或 npm i doco-dsh，装到 dsh 项目里供 composition �
 
 挂载完成后，`apply` 会：
 1. 解析配置（见下）；
-2. 注册 6 个工具（命名带 `doco_` 前缀，可配 `DOCO_DSH_TOOL_PREFIX` 覆盖）；
+2. 注册 9 个工具（命名带 `doco_` 前缀，可配 `DOCO_DSH_TOOL_PREFIX` 覆盖）；
 3. 注入系统提示词分段（仅规则，不注入内容/Token）；
 4. 注册 `/doco` 命令。
 
@@ -106,7 +109,7 @@ Token 只走 POST 请求体与浏览器；**绝不进入工具结果、日志、
 
 - **[doco-memory-dsh](https://github.com/songofhawk/doco-memory-dsh)**（peer `doco-dsh >= 0.2.0`）：把 Doco 知识库变成 Agent 的集中式记忆库（recall / remember / context / init，布局规范 [Doco Memory Layout spec v1](https://github.com/songofhawk/doco-memory-dsh/blob/main/design/doco-memory-layout-spec-v1.md)）。
 
-不消费 `doco` 服务也完全不影响 doco-dsh 自身 6 个工具：服务是纯增量面。
+不消费 `doco` 服务也完全不影响 doco-dsh 自身 9 个工具：服务是纯增量面。
 
 ## 与 Doco MCP 的关系
 
@@ -120,5 +123,15 @@ Token 只走 POST 请求体与浏览器；**绝不进入工具结果、日志、
 
 ```bash
 pnpm install
-pnpm test          # 68 个测试：单测 + 真实 dsh-tools/cordis 冒烟 + 装配集成
+pnpm test          # 80 个测试：单测 + 真实 dsh-tools/cordis 冒烟 + 装配集成
 ```
+## 电子表格（0.3.0）
+
+独立 `document_type=spreadsheet` 必须使用专用工具，禁止通用 TipTap 写入及浏览器 click/setValue。
+先 `doco_get_spreadsheet` 取得顶层 `version` 和 sheet ID（旧单页 `sheet_1`），再 `doco_get_cells` 读取目标范围。
+调用 `doco_update_cells`，例如 `cells={"C15":"10","C16":"20","C17":"=SUM(C15:C16)","C18":""}`，`if_match` 为读取的 version 或带双引号 ETag。
+值必须为字符串；公式不在服务端计算，空字符串清空值且保留样式。写后 GET 回读确认。
+写工具沿用 allowWrites、documents:write 和 dsh 审批门禁；一次调用仅 PATCH 一次。
+失败返回 `http_status`、原始 `code`、`details`、`request_id`；版本冲突另含 `current_version` 与重读提示。
+仅 `409 document_version_conflict` 在上层重读内容和版本、合并后重试，最多 3 次；其他 409（如类型不符）原样处理。
+现有发布版 DocoClient.request 即可调用，无需升级 CLI 依赖或修改 `doco_save_draft`。

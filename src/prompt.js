@@ -24,7 +24,9 @@ export function promptText({ toolPrefix }) {
     '',
     '[Doco Write Safety]',
     '- 默认只读。写草稿用 ' + t('save_draft') + '，先 mode=preview 展示计划并等待用户确认，再 mode=commit。',
-    '- 不删除、不整篇覆盖、不移动文档；只创建新草稿，且遵守服务端版本与幂等契约。',
+    '- 不删除、不整篇覆盖、不移动文档；草稿只创建普通文档。',
+    `- document_type=spreadsheet 必须用 ${t('get_spreadsheet')} / ${t('get_cells')} / ${t('update_cells')}；禁止通用 TipTap 写入和浏览器 click/setValue。`,
+    '- 电子表格先读顶层 version，再带 if_match 批量写 cells；只有 document_version_conflict 才重读合并，最多重试 3 次。',
     '- 遇到 stale / incomplete / conflict / read_cursor_stale，明确说明并重读，不得用强制覆盖掩盖冲突。',
   ].join('\n');
 }

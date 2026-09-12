@@ -3,6 +3,12 @@
 All notable changes to the doco-dsh plugin are documented here.
 版本号遵循 [SemVer](https://semver.org/)。
 
+## [0.3.0] - 2026-09-12
+
+- 新增 spreadsheet 结构读取、区域原值读取与带 If-Match 的原子批量写入工具。
+- 写入沿用权限/审批门禁，409 保留 API 错误码与当前版本，不自动重试。
+- 草稿创建行为保持不变。
+
 ## [0.2.0] - 2026-08-20
 
 ### Added

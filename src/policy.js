@@ -25,7 +25,7 @@ export function hasScope(scopes, scope) {
   return Array.isArray(scopes) && scopes.includes(scope);
 }
 
-/** 写工具名（v0.1 唯一写工具是 save_draft）。 */
+/** 草稿工具名；电子表格写入另由 isCommitCall 识别。 */
 export function writeToolName(toolPrefix) {
   return `${toolPrefix}save_draft`;
 }
@@ -37,6 +37,7 @@ export function writeToolName(toolPrefix) {
  * @returns {boolean}
  */
 export function isCommitCall(exec, toolPrefix) {
+  if (exec?.name === `${toolPrefix}update_cells`) return true;
   if (!exec || exec.name !== writeToolName(toolPrefix)) return false;
   const args = exec.arguments;
   return Boolean(args && typeof args === 'object' && args.mode === 'commit');
@@ -84,6 +85,9 @@ export async function preExecuteDecision(exec, next, state, toolPrefix) {
     return { kind: 'deny', reason: 'doco_write_scope_required：当前 Token 无 documents:write 权限。请重新 /doco connect 选择读写权限。' };
   }
 
+  if (exec.name === `${toolPrefix}update_cells`) {
+    return { kind: 'ask', reason: '确认批量写入 Doco 电子表格单元格？' };
+  }
   const args = exec.arguments;
   const title = args && typeof args === 'object' ? String(args.title ?? '') : '';
   return { kind: 'ask', reason: `确认写入 Doco 草稿${title ? `「${title}」` : ''}？` };

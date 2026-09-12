@@ -15,6 +15,9 @@ const EXPECTED_TOOLS = [
   'doco_outline',
   'doco_read',
   'doco_save_draft',
+  'doco_get_spreadsheet',
+  'doco_get_cells',
+  'doco_update_cells',
 ];
 
 test('registerTools 注册全部工具并应用前缀', () => {
@@ -23,7 +26,7 @@ test('registerTools 注册全部工具并应用前缀', () => {
   const { registered, skipped, disposers } = registerTools(ctx.tools, { state, toolPrefix: 'doco_' }, identityBuildTool);
   assert.deepEqual(registered.sort(), EXPECTED_TOOLS.slice().sort());
   assert.equal(skipped.length, 0);
-  assert.equal(disposers.length, 6);
+  assert.equal(disposers.length, 9);
   for (const name of EXPECTED_TOOLS) {
     const tool = registeredTools.get(name);
     assert.ok(tool, `${name} 未注册`);

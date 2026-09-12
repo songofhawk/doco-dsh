@@ -5,7 +5,7 @@
  * （§20 要求「不猜 dsh API」——这里直接对齐真实运行时，而非替身）。
  *
  * 覆盖三类最容易猜错的点：
- *   1. 6 个工具的 parameters（隐式开放对象 + required:true）能否被编译；
+ *   1. 9 个工具的 parameters（隐式开放对象 + required:true）能否被编译；
  *   2. output.schema=OPEN_OBJECT（ObjectValueSchemaSpec，additionalProperties:true）能否编译；
  *   3. 真实 defineTool 的 execute 封装会按 schema 校验参数（缺必填 q → ToolArgsError）。
  */
@@ -18,11 +18,11 @@ import { createDocoSaveDraft } from '../src/tools/saveDraft.js';
 import { apply } from '../src/index.js';
 import { makeFakeContext, makeFakeState } from './helpers/fake-context.js';
 
-test('真实 defineTool 接受并编译全部 6 个工具', () => {
+test('真实 defineTool 接受并编译全部 9 个工具', () => {
   const { ctx } = makeFakeContext();
   const state = makeFakeState();
   const { registered, skipped } = registerTools(ctx.tools, { state, toolPrefix: 'doco_' }, defineTool);
-  assert.equal(registered.length, 6);
+  assert.equal(registered.length, 9);
   assert.equal(skipped.length, 0);
 
   for (const name of registered) {
@@ -114,7 +114,7 @@ test('validateArgs：必填参数缺省返回违规，合法样本返回空数�
 
 // 完整 apply()：真实 cordis Context + 真实 defineTool + dsh 服务 shim（tools/systemPrompt/commands）。
 // 验证 index.js 的 effect/on/logger/生命周期调用方式与真实 cordis 兼容。
-test('apply 在真实 cordis Context 上装配 6 个工具并可正常执行', async () => {
+test('apply 在真实 cordis Context 上装配 9 个工具并可正常执行', async () => {
   const ctx = new Context();
   const registered = new Map();
   const guards = [];
@@ -134,7 +134,7 @@ test('apply 在真实 cordis Context 上装配 6 个工具并可正常执行', a
 
   apply(ctx, { baseUrl: 'https://api.example.test/api/v1', token: 'doco_tok_TEST_ONLY_0000000000' });
 
-  assert.equal(registered.size, 6);
+  assert.equal(registered.size, 9);
   assert.ok(registered.has('doco_search'));
   assert.equal(guards.length, 1);          // 写入门禁已装
   assert.equal(sections.length, 1);        // 系统提示词分段已注入
