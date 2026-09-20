@@ -50,18 +50,6 @@ export function createDocoOutline({ state, name }) {
       } catch (err) {
         return catchAsError(err);
       }
-    },
-    render(_args, value) {
-      if (value.kind === 'doco_error') {
-        return textBlock(`Doco 错误（${value.code}）：${value.message}\n下一步：${value.next_step || ''}`);
-      }
-      const head = `大纲 ${value.document_uri}（version=${value.version ?? '?'}，${value.sections.length} 个标题，${value.block_count} 块）`;
-      if (value.sections.length === 0) return textBlock(`${head}\n（该文档暂无标题结构）`);
-      const lines = value.sections.map((s) => {
-        const indent = '  '.repeat(Math.max(0, (s.level ?? 1) - 1));
-        return `${indent}- ${s.title ?? '(无标题)'}${s.block_id ? `  [${s.block_id}]` : ''}${s.block_count != null ? `  (${s.block_count} 块)` : ''}`;
-      });
-      return textBlock(`${head}\n${lines.join('\n')}`);
-    },
+    }
   };
 }

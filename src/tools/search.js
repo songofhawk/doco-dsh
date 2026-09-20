@@ -97,33 +97,6 @@ export function createDocoSearch({ state, name }) {
       } catch (err) {
         return catchAsError(err);
       }
-    },
-    render(_args, value) {
-      if (value.kind === 'doco_error') {
-        return textBlock(`Doco 错误（${value.code}）：${value.message}\n下一步：${value.next_step || ''}`);
-      }
-      const head = [`搜索「${value.query}」（mode=${value.mode}，${value.results.length} 条命中` +
-        `，complete=${value.projection.complete}，freshness=${value.projection.freshness}）`];
-      if (value.projection.stale_document_count > 0) {
-        head.push(`⚠ 有 ${value.projection.stale_document_count} 篇文档索引待重建，结果可能不是最新。`);
-      }
-      if (value.completeness) {
-        head.push(`⚠ ${value.completeness.note}`);
-      }
-      if (value.results.length === 0) {
-        head.push('无命中。' + (value.projection.complete ? '' : ' 注意：这不代表知识库中不存在相关内容。'));
-        return textBlock(head.join('\n'));
-      }
-      const lines = value.results.map((hit, i) => {
-        const ref = hit.document_uri || '';
-        const parts = [
-          `${i + 1}. ${hit.title ?? '(无标题)'} — ${ref}`,
-          `   ${hit.path_text ? `路径：${hit.path_text}；` : ''}matched_in=${hit.matched_in} freshness=${hit.freshness ?? '?'} score=${hit.score ?? '-'}`,
-        ];
-        if (hit.context?.match) parts.push(`   命中片段：${clip(hit.context.match)}`);
-        return parts.join('\n');
-      });
-      return textBlock([...head, lines.join('\n')].join('\n'));
-    },
+    }
   };
 }

@@ -130,32 +130,6 @@ export function createDocoRead({ state, name }) {
       } catch (err) {
         return catchAsError(err);
       }
-    },
-    render(_args, value) {
-      if (value.kind === 'doco_error') {
-        return textBlock(`Doco 错误（${value.code}）：${value.message}\n下一步：${value.next_step || ''}`);
-      }
-      const header =
-        `${value.document_uri}（version=${value.version ?? '?'}，view=${value.view}）`;
-      let body = '';
-      if (typeof value.content === 'string') {
-        body = value.content;
-      } else if (Array.isArray(value.sections)) {
-        body = value.sections.map((s) =>
-          `${'  '.repeat(Math.max(0, (s.level ?? 1) - 1))}- ${s.title ?? '(无标题)'}${s.block_id ? ` [${s.block_id}]` : ''}`,
-        ).join('\n');
-      } else if (value.document != null) {
-        body = `（tiptap-json 结构共 ${JSON.stringify(value.document).length} 字符，见 structuredContent；需要可读正文请改用 view=markdown）`;
-      }
-      const footer = value.continuation
-        ? `\n\n⚠ ${value.continuation}`
-        : '';
-
-      const clipped = clipToOutputLimit(`${header}\n\n${body}${footer}`);
-      if (clipped.truncated) {
-        clipped.text += '\n⚠ 输出超 200000 字符：请减小 max_tokens 或用 around 精读局部。';
-      }
-      return textBlock(clipped.text);
-    },
+    }
   };
 }
