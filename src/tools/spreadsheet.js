@@ -35,7 +35,7 @@ function spreadsheetTool({ state, name }, operation) {
       if (write) {
         const { scopes, error } = await ensureIdentity(state);
         if (error) return error;
-        if (!state.config.allowWrites) return errorValue('doco_write_not_confirmed', '写入未开启。', '配置 allowWrites 并通过 dsh 写入审批。');
+        if (!state.config.allowWrites) return errorValue('doco_write_not_confirmed', '写入未获确认（allowWrites 已被关闭）。', '配置 DOCO_DSH_ALLOW_WRITES=true 并通过 dsh 写入审批。');
         if (!hasScope(scopes, SCOPE_WRITE)) return errorValue('doco_write_scope_required', 'Token 缺少 documents:write。');
       }
       const base = `/documents/${encodeURIComponent(args.document_id)}/spreadsheet`;

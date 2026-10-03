@@ -15,6 +15,22 @@ function parseSub(rawInput) {
 }
 
 /**
+ * 解析 connect 申请的 Token 权限：缺省 read_write（与 allowWrites 缺省开启一致），
+ * 显式 `--access read_only` 才降为只读。任何无法识别的 access 串都按只读处理，
+ * 避免拼错参数时反而申请到更大的权限。
+ * @param {string[]} rest 子命令之后的参数
+ * @returns {'read_only'|'read_write'}
+ */
+export function parseAccess(rest) {
+  const tokens = Array.isArray(rest) ? rest.map((t) => String(t).trim().toLowerCase()) : [];
+  const i = tokens.indexOf('--access');
+  const value = i >= 0 ? tokens[i + 1] : undefined;
+  if (value === 'read_write') return 'read_write';
+  if (i >= 0) return 'read_only';
+  return tokens.includes('read_only') ? 'read_only' : 'read_write';
+}
+
+/**
  * 构造命令定义数组（由 index.js 逐个 ctx.commands.register）。
  * @param {{
  *   state: ReturnType<import('./context.js').createState>;
@@ -26,8 +42,8 @@ export function buildCommands({ state, resolveConfig }) {
   return [
     {
       name: 'doco',
-      description: 'Doco 知识库连接与状态：status / connect [--access read_only|read_write] / disconnect / set-kb <kb_id>',
-      input: { hint: 'status | connect [--access read_only|read_write] | disconnect | set-kb <kb_id>' },
+      description: 'Doco 知识库连接与状态：status / connect [--access read_write|read_only] / disconnect / set-kb <kb_id>',
+      input: { hint: 'status | connect [--access read_write|read_only] | disconnect | set-kb <kb_id>' },
       handler: async ({ rawInput, signal }) => {
         const { sub, rest } = parseSub(rawInput);
 
@@ -46,7 +62,7 @@ export function buildCommands({ state, resolveConfig }) {
         }
 
         if (sub === 'connect') {
-          const access = rest.includes('read_write') ? 'read_write' : 'read_only';
+          const access = parseAccess(rest);
           try {
             const anon = state.client.withToken('');
             const { data: code } = await anon.requestDeviceCode({ clientName: 'Doco dsh plugin', scopes: access });

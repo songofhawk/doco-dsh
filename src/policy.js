@@ -2,7 +2,7 @@
 /**
  * 写入审批与能力门禁（设计文档 §10.5、§13.2）。
  * 三层防线：
- *   1. `ctx.tools.guard`（同步、单调拒绝）——allowWrites 配置后背；未开启则 commit 一律拒绝；
+ *   1. `ctx.tools.guard`（同步、单调拒绝）——allowWrites 配置后背；显式关闭时 commit 一律拒绝；
  *   2. `ctx.on('tools/pre-execute')`（异步）——await /me 后校验 documents:write scope，再 `ask` 用户确认；
  *   3. `doco_save_draft` execute 内防御性校验——即使被直接顶层调用也返回稳定错误码。
  * 预览（mode≠commit）不产生写入，不受门禁拦截。
@@ -44,7 +44,7 @@ export function isCommitCall(exec, toolPrefix) {
 }
 
 /**
- * 同步单调 guard：allowWrites 未开启时拒绝全部 commit（preview 放行）。
+ * 同步单调 guard：allowWrites 被显式关闭时拒绝全部 commit（preview 放行）。
  * @param {{ name?: string; arguments?: unknown }} exec
  * @param {{ config: { allowWrites?: boolean } }} state
  * @param {string} toolPrefix
@@ -53,7 +53,7 @@ export function isCommitCall(exec, toolPrefix) {
 export function writeGuard(exec, state, toolPrefix) {
   if (!isCommitCall(exec, toolPrefix)) return undefined;
   if (state.config?.allowWrites !== true) {
-    return 'doco_write_not_confirmed：写入未被允许（默认只读）。请在 dsh 审批中确认，或配置 DOCO_DSH_ALLOW_WRITES=true。';
+    return 'doco_write_not_confirmed：写入未被允许（DOCO_DSH_ALLOW_WRITES=false）。请在 dsh 审批中确认写入，或配置 DOCO_DSH_ALLOW_WRITES=true。';
   }
   return undefined;
 }
@@ -70,7 +70,7 @@ export async function preExecuteDecision(exec, next, state, toolPrefix) {
   if (!isCommitCall(exec, toolPrefix)) return next();
 
   if (state.config?.allowWrites !== true) {
-    return { kind: 'deny', reason: 'doco_write_not_confirmed：写入未获确认（默认只读）。' };
+    return { kind: 'deny', reason: 'doco_write_not_confirmed：写入未获确认（DOCO_DSH_ALLOW_WRITES=false）。' };
   }
 
   let scopes = [];

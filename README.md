@@ -2,7 +2,7 @@
 
 Doco 知识库的 **DeepSeek Harness（dsh）原生插件**。用 9 个工具把 Agent 接到你的 Doco 知识库上：块级寻址、按 token 预算精读、乐观并发写入草稿、来源引用，全部复用 [`doco-agent-cli`](https://www.npmjs.com/package/doco-agent-cli) 的 `DocoClient`（HTTP / ETag / Token 逻辑不复制）。
 
-默认**只读**；写入走 dsh 原生审批 + scope 门禁，绝不静默提交。
+写入**需显式确认**：任何 commit 都先经 dsh 原生审批 + `documents:write` scope 双重门禁，绝不静默提交；需要只读部署时设 `DOCO_DSH_ALLOW_WRITES=false`。
 
 ## 能力
 
@@ -61,11 +61,12 @@ pnpm add doco-dsh   # 或 npm i doco-dsh，装到 dsh 项目里供 composition �
 ## 授权（设备登录流）
 
 ```text
-/doco connect                     # 默认 read_only
-/doco connect --access read_write # 需要写入时选 read_write
+/doco connect                     # 默认 read_write
+/doco connect --access read_only  # 只读部署时显式降权
 ```
 
 命令会打开系统浏览器完成设备授权，Token 写入 `~/.config/doco/config.json`（`0600`），并自动重载插件状态。
+默认申请读写权限与 `DOCO_DSH_ALLOW_WRITES` 缺省开启保持一致；`--access` 后写任何非 `read_write` 的值（含拼错）都按只读处理，不会放大权限。
 
 ```text
 /doco status / disconnect / set-kb <kb_id>
@@ -86,11 +87,11 @@ Token 只走 POST 请求体与浏览器；**绝不进入工具结果、日志、
 | `DOCO_READ_MAX_TOKENS` | `4000` | `doco_read` 默认预算（64–50000） |
 | `DOCO_READ_CONTEXT_BEFORE` / `AFTER` | `2` / `4` | 上下文块默认（0–100） |
 | `DOCO_DSH_TOOL_PREFIX` | `doco` | 工具名前缀 |
-| `DOCO_DSH_ALLOW_WRITES` | `false` | 写入总开关（仍受 scope + 用户确认双重门禁） |
+| `DOCO_DSH_ALLOW_WRITES` | `true` | 写入总开关（仍受 scope + 用户确认双重门禁；设 `false` 回到只读） |
 
 ## 写入安全（三层）
 
-1. **同步 guard**：`DOCO_DSH_ALLOW_WRITES` 未开启时，任何 `commit` 被单调拒绝（`doco_write_not_confirmed`）。
+1. **同步 guard**：`DOCO_DSH_ALLOW_WRITES` 被显式关闭时，任何 `commit` 被单调拒绝（`doco_write_not_confirmed`）。默认开启，此时该层放行、依赖下面两层。
 2. **pre-execute 审批**：commit 前校验 `documents:write` scope，随后 `ask` 用户确认（dsh 原生审批）。
 3. **execute 防御**：即使被直接顶层调用，`doco_save_draft` 也再校验 scope 并返回稳定错误码。
 

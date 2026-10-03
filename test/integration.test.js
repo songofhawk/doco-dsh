@@ -66,6 +66,7 @@ test('promptText 引用实际工具名并含安全规则', () => {
   assert.ok(text.includes('doco_read'));
   assert.ok(text.includes('不完整'));
   assert.ok(text.includes('不可信'));
+  assert.ok(text.includes('正文不重复大标题'));
 });
 
 test('buildCommands 暴露 /doco 命令；status 返回连接态', async () => {

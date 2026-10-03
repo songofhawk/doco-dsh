@@ -130,14 +130,14 @@ export function createDocoSaveDraft({ state, name }) {
           commit_available: canWrite,
           note: canWrite
             ? '预览通过。commit 会经用户确认后写入。'
-            : '预览通过。但当前无法 commit：' + (identityError ? `身份不可用（${identityError.code}）` : '缺少 documents:write 权限或未开启 allowWrites。'),
+            : '预览通过。但当前无法 commit：' + (identityError ? `身份不可用（${identityError.code}）` : '缺少 documents:write 权限或 allowWrites 已被关闭。'),
         };
       }
 
       // ---- commit：防御性校验（正常应已被 policy 拦截）----
       if (identityError) return identityError.code ? identityError : toErrorValue(new Error('identity unavailable'));
       if (!state.config.allowWrites) {
-        return errorValue('doco_write_not_confirmed', '写入未获用户确认（allowWrites 未开启）。', '在 dsh 审批中确认写入，或配置 DOCO_DSH_ALLOW_WRITES=true。');
+        return errorValue('doco_write_not_confirmed', '写入未获用户确认（allowWrites 已被关闭）。', '在 dsh 审批中确认写入，或配置 DOCO_DSH_ALLOW_WRITES=true。');
       }
       if (!hasScope(scopes, SCOPE_WRITE)) {
         return errorValue('doco_write_scope_required', '当前 Token 无 documents:write 权限，无法 commit。', '重新 /doco connect 选择读写权限。');

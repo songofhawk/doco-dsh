@@ -3,6 +3,14 @@
 All notable changes to the doco-dsh plugin are documented here.
 版本号遵循 [SemVer](https://semver.org/)。
 
+## [0.4.0] - 2026-10-03
+
+### Changed
+- **`DOCO_DSH_ALLOW_WRITES` 缺省值由 `false` 改为 `true`**：写入总开关默认开启，装机不再需要额外配置即可写入草稿/单元格。需要只读部署时显式设 `DOCO_DSH_ALLOW_WRITES=false`（任一 false 串都关闭；优先级不变：启动参数 > `loadConfig()` > 插件 env > 内置默认）。
+- 写入安全的后两层不变：`documents:write` scope 校验与 dsh 原生 `ask` 审批仍逐次生效；`doco_save_draft` 仍只创建新草稿（不删除/不移动/不整篇覆盖）。
+- 同步更新拒绝文案、系统提示词与 `doco_status` 能力判定说明（不再表述为「默认只读」）。
+- **`/doco connect` 默认申请由 `read_only` 改为 `read_write`**，与写入开关缺省保持一致，新装机不必再手动加 `--access read_write`。显式 `--access read_only` 仍可降为只读；`--access` 后写任何非 `read_write` 的值（含拼错、缺值）一律按只读处理，不会放大权限。已授权的 Token 不受影响。
+
 ## [0.3.0] - 2026-09-12
 
 - 新增 spreadsheet 结构读取、区域原值读取与带 If-Match 的原子批量写入工具。

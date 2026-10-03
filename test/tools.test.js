@@ -45,7 +45,7 @@ test('doco_status：已配置且 /me 正常 → connected + 能力', async () =>
   assert.equal(v.connected, true);
   assert.equal(v.capabilities.search, true);
   assert.equal(v.capabilities.read, true);
-  assert.equal(v.capabilities.write, false); // allowWrites 默认 false
+  assert.equal(v.capabilities.write, false); // fixture 未开启 allowWrites
 });
 
 test('doco_status：/me 失败 → connected:false + 稳定错误码', async () => {

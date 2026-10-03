@@ -8,7 +8,7 @@ import { toErrorValue } from '../errors.js';
 import { hasScope, SCOPE_READ, SCOPE_WRITE } from '../policy.js';
 import { textBlock } from './shared.js';
 
-/** 写能力：仅当配置显式允许写入（allowWrites）时视为可用，且运行时仍受 policy 门禁。 */
+/** 写能力：allowWrites（默认开启）且 Token 带 documents:write 时视为可用，且运行时仍受 policy 门禁。 */
 function capabilities(state, scopes) {
   const read = hasToken(state) && hasScope(scopes, SCOPE_READ);
   return {

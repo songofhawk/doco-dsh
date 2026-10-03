@@ -10,6 +10,7 @@ import { clipToOutputLimit, clampInt, utf8ByteLength, LIMITS } from '../src/limi
 import { documentUri, knowledgeBaseUri, webUrl, citation, citationFromHit } from '../src/citations.js';
 import { redactSecrets, userAgent } from '../src/credentials.js';
 import { validateQuery, validateLimit, normalizeKbId, textBlock, oneLine } from '../src/tools/shared.js';
+import { parseAccess } from '../src/commands.js';
 
 // ---- errors ----
 
@@ -159,6 +160,22 @@ test('resolveConfig 优先级 options > env，缺省取内置默认', () => {
   assert.equal(c.allowWrites, true);
   assert.equal(c.readMaxTokens, 10000);
   assert.equal(c.toolPrefix, 'doco_');
+});
+
+test('resolveConfig：allowWrites 缺省开启，显式 false 仍关闭', () => {
+  assert.equal(resolveConfig({}, {}).allowWrites, true);
+  assert.equal(resolveConfig({}, { [ENV_KEYS.allowWrites]: 'false' }).allowWrites, false);
+  assert.equal(resolveConfig({ allowWrites: false }, { [ENV_KEYS.allowWrites]: 'true' }).allowWrites, false);
+});
+
+test('parseAccess：缺省 read_write，显式 read_only 或拼错的 access 串降为只读', () => {
+  assert.equal(parseAccess([]), 'read_write');
+  assert.equal(parseAccess(['--access', 'read_write']), 'read_write');
+  assert.equal(parseAccess(['--access', 'read_only']), 'read_only');
+  assert.equal(parseAccess(['--access', 'READ_ONLY']), 'read_only');
+  assert.equal(parseAccess(['--access', 'write']), 'read_only'); // 认不出的值不放大权限
+  assert.equal(parseAccess(['--access']), 'read_only'); // 缺值
+  assert.equal(parseAccess(['read_only']), 'read_only');
 });
 
 test('resolveConfig 非法 baseUrl 抛 DocoPluginError', () => {

@@ -152,8 +152,11 @@ export function resolveConfig(options = {}, env = process.env) {
     readMaxTokens,
     contextBefore,
     contextAfter,
-    /** scope 见 policy.js；这里仅透传启动意图，覆盖 env 默认。 */
-    allowWrites: toBool(firstDefined(options.allowWrites, e.allowWrites), false),
+    /**
+     * scope 见 policy.js；写入总开关默认开启（scope + 用户确认双重门禁不变）。
+     * 需要只读部署时显式设 DOCO_DSH_ALLOW_WRITES=false（任一 false 串都关闭）。
+     */
+    allowWrites: toBool(firstDefined(options.allowWrites, e.allowWrites), true),
   });
 }
 
