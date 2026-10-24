@@ -24,6 +24,7 @@ Doco 知识库的 **DeepSeek Harness（dsh）原生插件**。用 9 个工具把
 
 `doco-dsh` 依赖：
 - `doco-agent-cli@^0.1.3`（npm 运行时依赖）；
+- Node.js ≥ 18.17；`undici@^6.29.1` 提供插件专用代理连接；
 - `@deepseek-ai/dsh-tools` / `@deepseek-ai/cordis`（**peer dep**，由宿主 dsh 提供，本插件不捆绑）。
 
 装包并自动挂载（推荐）——本包声明了 `dsh.bundle.patch`，`dsh plugin add` 装完即自动挂进 profile 层栈：
@@ -82,12 +83,29 @@ Token 只走 POST 请求体与浏览器；**绝不进入工具结果、日志、
 | --- | --- | --- |
 | `DOCO_API_BASE_URL` | `https://api.doco.page/api/v1` | API 地址（仅 http/https） |
 | `DOCO_API_TOKEN` | — | 令牌（也可用 `doco-agent-cli` 登录） |
+| `DOCO_PROXY_URL` | —（直连） | Doco API 专用 HTTP/HTTPS 代理，可含 URL 编码的用户名和密码 |
 | `DOCO_DEFAULT_KB` | — | 默认知识库 id |
 | `DOCO_WEB_ORIGIN` | `https://doco.page` | 引用链接的 Web 源 |
 | `DOCO_READ_MAX_TOKENS` | `4000` | `doco_read` 默认预算（64–50000） |
 | `DOCO_READ_CONTEXT_BEFORE` / `AFTER` | `2` / `4` | 上下文块默认（0–100） |
 | `DOCO_DSH_TOOL_PREFIX` | `doco` | 工具名前缀 |
 | `DOCO_DSH_ALLOW_WRITES` | `true` | 写入总开关（仍受 scope + 用户确认双重门禁；设 `false` 回到只读） |
+
+代理示例（在启动 dsh 的进程环境中设置，已运行的 dsh 需重启）：
+
+```bash
+export DOCO_PROXY_URL=http://127.0.0.1:7890
+# 然后启动 dsh，在会话中执行 /doco status 或 /doco connect
+```
+
+也可在调用插件 `apply(ctx, options)` 时传入 `proxyUrl: 'http://127.0.0.1:7890'`。
+代理配置优先级为 `options.proxyUrl` > `DOCO_PROXY_URL` > 直连；显式传入空字符串可关闭代理。
+带认证时使用 `http://user:password@proxy-host:port`，用户名和密码中的特殊字符需 URL 编码（例如 `@` 写成 `%40`）。
+支持通过 HTTP/HTTPS 代理访问 HTTP/HTTPS Doco API，不支持 SOCKS 代理。代理 URL 不接受路径、查询参数或片段；非法配置在加载时返回 `doco_invalid_proxy_url`，错误不回显代理凭据。
+设备授权请求及轮询、搜索、读取和写入均使用该代理；`/doco connect`、`disconnect`、`set-kb` 重建客户端后仍保留代理配置。
+该选项只影响插件及其 `doco` 服务客户端的 API 请求，浏览器授权页仍使用浏览器自身的代理设置。
+插件不会主动读取 `HTTP_PROXY` / `HTTPS_PROXY` / `ALL_PROXY` / `NO_PROXY`（含小写形式）；需要代理时请设置 `DOCO_PROXY_URL`。
+代理不可用时返回网络错误，不自动回退直连。插件不会修改全局 fetch 或 dispatcher；重配和卸载时关闭旧代理连接池。
 
 ## 写入安全（三层）
 
@@ -124,7 +142,7 @@ Token 只走 POST 请求体与浏览器；**绝不进入工具结果、日志、
 
 ```bash
 pnpm install
-pnpm test          # 80 个测试：单测 + 真实 dsh-tools/cordis 冒烟 + 装配集成
+pnpm test          # 单测 + 本地代理请求测试 + 真实 dsh-tools/cordis 冒烟 + 装配集成
 ```
 ## 电子表格（0.3.0）
 

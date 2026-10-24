@@ -25,6 +25,7 @@ export class DocoPluginError extends Error {
 /** 参数非法时的插件错误码（在 execute 内手工校验后抛出/返回）。 */
 export const INVALID_CODES = Object.freeze({
   baseUrl: 'doco_invalid_base_url',
+  proxyUrl: 'doco_invalid_proxy_url',
   query: 'doco_invalid_query',
   limit: 'doco_invalid_limit',
   mode: 'doco_invalid_mode',
@@ -166,7 +167,7 @@ export function mapApiError(error) {
     return {
       code: 'doco_network',
       message: timeout ? '连接 Doco API 超时。' : '无法连接到 Doco API（网络或 DNS 故障）。',
-      next_step: '检查网络、https_proxy、以及 DOCO_API_BASE_URL 指向的可达性后重试。',
+      next_step: '检查网络、DOCO_PROXY_URL 代理配置、以及 DOCO_API_BASE_URL 指向的可达性后重试。',
       http_status: status === 0 ? null : status,
       retry_after: null,
       retryable: true,

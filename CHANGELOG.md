@@ -3,6 +3,16 @@
 All notable changes to the doco-dsh plugin are documented here.
 版本号遵循 [SemVer](https://semver.org/)。
 
+## [Unreleased]
+
+### Added
+- `DOCO_PROXY_URL` / `options.proxyUrl`：通过插件专用 Undici ProxyAgent 访问 Doco，支持 HTTP/HTTPS 代理与 URL 用户名密码认证，覆盖设备登录及所有 API 请求。
+- 配置校验、本地 CONNECT 代理回归测试；重配与卸载时释放代理连接池，不修改全局 dispatcher。
+
+### Changed
+- 新增 `undici@^6.29.1` 运行时依赖，Node.js 最低版本调整为 18.17。
+- 网络错误提示改为检查 `DOCO_PROXY_URL`，移除未生效的 `https_proxy` 提示。
+
 ## [0.4.0] - 2026-10-03
 
 ### Changed

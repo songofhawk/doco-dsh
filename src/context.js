@@ -7,6 +7,7 @@
 import { DocoClient } from 'doco-agent-cli';
 import { userAgent } from './credentials.js';
 import { toErrorValue } from './errors.js';
+import { createTransport } from './transport.js';
 
 /**
  * 构造插件运行时状态（含唯一 DocoClient）。不做任何网络调用。
@@ -19,18 +20,21 @@ import { toErrorValue } from './errors.js';
  *   scopes: string[];
  *   tokenId: string|null;
  *   identityError: ReturnType<typeof toErrorValue> | null;
+ *   dispose: () => Promise<void>;
  * }}
  */
 export function createState(config, impl = {}) {
+  const transport = createTransport(config.proxyUrl, impl.fetch);
   const client = new DocoClient({
     baseUrl: config.baseUrl,
     token: config.token || '',
-    fetchImpl: impl.fetch,
+    fetchImpl: transport.fetch,
     userAgent: userAgent(),
   });
   return {
     config,
     client,
+    dispose: transport.dispose,
     user: null,
     scopes: [],
     tokenId: null,
@@ -88,9 +92,12 @@ export async function ensureIdentity(state) {
 export function reconfigure(state, patch, resolveConfig, impl = {}) {
   const nextConfig = resolveConfig({ ...state.config, ...patch });
   const next = createState(nextConfig, impl);
+  // 新客户端构造成功后再关闭旧连接，配置非法时保留原状态。
+  state.dispose?.();
   // 原地替换 state 字段，便于已持有 state 引用的工具持续读到新配置
   state.config = next.config;
   state.client = next.client;
+  state.dispose = next.dispose;
   state.user = null;
   state.scopes = [];
   state.tokenId = null;

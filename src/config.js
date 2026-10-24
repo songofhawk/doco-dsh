@@ -21,6 +21,7 @@ export const DEFAULT_WEB_ORIGIN = 'https://doco.page';
 export const ENV_KEYS = Object.freeze({
   baseUrl: 'DOCO_API_BASE_URL',
   token: 'DOCO_API_TOKEN',
+  proxyUrl: 'DOCO_PROXY_URL',
   defaultKb: 'DOCO_DEFAULT_KB',
   webOrigin: 'DOCO_WEB_ORIGIN',
   readMaxTokens: 'DOCO_READ_MAX_TOKENS',
@@ -76,6 +77,7 @@ function readEnv(env) {
   return {
     baseUrl: env[ENV_KEYS.baseUrl],
     token: env[ENV_KEYS.token],
+    proxyUrl: env[ENV_KEYS.proxyUrl],
     defaultKb: env[ENV_KEYS.defaultKb],
     webOrigin: env[ENV_KEYS.webOrigin],
     readMaxTokens: env[ENV_KEYS.readMaxTokens],
@@ -146,6 +148,7 @@ export function resolveConfig(options = {}, env = process.env) {
   return Object.freeze({
     baseUrl: validateBaseUrl(baseUrlRaw),
     token: typeof token === 'string' ? token : '',
+    proxyUrl: validateProxyUrl(firstDefined(options.proxyUrl, e.proxyUrl)),
     webOrigin: validateOrigin(firstDefined(options.webOrigin, e.webOrigin)),
     defaultKb: firstDefined(options.defaultKb, e.defaultKb),
     toolPrefix,
@@ -198,6 +201,34 @@ export function validateBaseUrl(input) {
     });
   }
   return url.toString().replace(/\/+$/, '');
+}
+
+/**
+ * 插件专用 HTTP(S) 代理；空字符串显式关闭。错误中不回显含认证信息的 URL。
+ * @param {unknown} input
+ * @returns {string}
+ */
+export function validateProxyUrl(input) {
+  if (input == null || input === '') return '';
+  const invalid = () => new DocoPluginError(
+    INVALID_CODES.proxyUrl,
+    'Doco 代理地址必须为 http(s)://[用户名:密码@]主机[:端口]，不支持路径、查询参数或片段。',
+    { config: ENV_KEYS.proxyUrl },
+  );
+  if (typeof input !== 'string') throw invalid();
+  if (!input.trim()) return '';
+  let url;
+  try {
+    url = new URL(input.trim());
+    // 提前验证认证字段，避免构造 ProxyAgent 时抛出含凭据的原始异常。
+    decodeURIComponent(url.username);
+    decodeURIComponent(url.password);
+  } catch {
+    throw invalid();
+  }
+  if (!['http:', 'https:'].includes(url.protocol) || !url.hostname ||
+      url.pathname !== '/' || url.search || url.hash) throw invalid();
+  return url.toString();
 }
 
 /**

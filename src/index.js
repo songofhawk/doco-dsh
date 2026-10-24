@@ -55,6 +55,7 @@ export function apply(ctx, options = {}) {
     // 0. doco 服务（下游插件如 doco-memory-dsh 注入依赖的契约面）
     // provide 必须在 effect 内执行，disposer 随插件卸载一并清理。
     yield ctx.provide('doco', createDocoService(state, { toolPrefix }));
+    yield () => state.dispose();
 
     // 1. 工具（重复名跳过，不覆盖其他插件/MCP 的同名工具）
     const { disposers, skipped } = registerTools(ctx.tools, { state, toolPrefix }, defineTool, { log });
